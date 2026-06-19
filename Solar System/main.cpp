@@ -22,6 +22,8 @@ void processInput(GLFWwindow* window);
 void setup_VBO(Sphere& body);
 void step_simulation(Shader& planetShader, Shader& sunShader);
 void gravity();
+void draw_sphere(Sphere& sphere);
+
 
 // sphere
 int nrRows = 7;
@@ -36,6 +38,7 @@ GLint attribVertexTexCoord = 2;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 Sphere sphere1(3.0f, 72, 36, true, 2);
 Sphere sphere2(1.0f, 36, 18, true, 2);  // radius, sectors, stacks, smooth(default), Y-up
+
 Planets solarSystem;
 
 int main()
@@ -89,6 +92,11 @@ int main()
 	Shader planetShader("planetShader.vs", "planetShader.fs");
 	Shader sunShader("sunShader.vs", "sunShader.fs");
 
+	// set planet masses
+	// -----------------
+	solarSystem.mercury.mass = 50.0;
+	solarSystem.mars.mass = 75.0;
+
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -130,10 +138,8 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	planetShader.use();
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 model = glm::mat4(1.0f);
 	planetShader.setMat4("projection", projection);
 	planetShader.setMat4("view", view);
-	planetShader.setMat4("model", model);
 
 	// Light uniforms
 	glm::vec3 lightPos = glm::vec3(2.0f, 1.0f, 0.0f);
@@ -144,18 +150,29 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	planetShader.setVec4("lightSpecular",glm::vec4(0.0f));
 
 	// Process Gravity
-	// 
-	setup_VBO(solarSystem.mercury);
-	// Sphere Drawing
 	// ---------------
+	glm::vec3 mercuryPos = glm::vec3(-5.0f, -3.0f, -10.0f);
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), mercuryPos);
+	planetShader.setMat4("model", model);
+	setup_VBO(solarSystem.mercury);
 	glBindVertexArray(vaoId1);
-	glDrawElements(GL_TRIANGLES, sphere1.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
+	glDrawElements(GL_TRIANGLES, solarSystem.mercury.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
+
+	glm::vec3 marsPos = glm::vec3(5.0f, -3.0f, -10.0f);
+	model = glm::translate(glm::mat4(1.0f), marsPos);
+	planetShader.setMat4("model", model);
+	glDrawElements(GL_TRIANGLES, solarSystem.mars.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 }
 
 // Process gravity calculations
 void gravity()
 {
 	
+}
+
+void draw_sphere(Sphere& sphere)
+{
+
 }
 
 

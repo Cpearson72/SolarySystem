@@ -23,3 +23,15 @@ struct Moons
 {
 
 };
+
+void set_mass(Planets& solarSystem, double* masses)
+{
+	solarSystem.mercury.mass = masses[0];
+	solarSystem.venus.mass = masses[1];
+	solarSystem.earth.mass = masses[2];
+	solarSystem.mars.mass = masses[3];
+	solarSystem.jupiter.mass = masses[4];
+	solarSystem.saturn.mass = masses[5];
+	solarSystem.uranus.mass = masses[6];
+	solarSystem.neptune.mass = masses[7];
+}

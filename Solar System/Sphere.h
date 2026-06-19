@@ -71,6 +71,10 @@ public:
     // debug
     void printSelf() const;
 
+    // for gravity
+    double mass;
+    float position[3] = { 0.0, 0.0, 0.0 };
+
 protected:
 
 private:
