@@ -38,6 +38,8 @@ GLint attribVertexTexCoord = 2;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 Sphere sphere1(3.0f, 72, 36, true, 2);
 Sphere sphere2(1.0f, 36, 18, true, 2);  // radius, sectors, stacks, smooth(default), Y-up
+glm::vec3 mercuryPos = glm::vec3(-5.0f, -2.0f, -10.0f);
+glm::vec3 marsPos = glm::vec3(5.0f, -2.0f, -10.0f);
 
 Planets solarSystem;
 
@@ -94,8 +96,10 @@ int main()
 
 	// set planet masses
 	// -----------------
-	solarSystem.mercury.mass = 50.0;
-	solarSystem.mars.mass = 75.0;
+	solarSystem.mercury.mass = 3.3011e8;
+	solarSystem.mars.mass = 6.4171e10;
+	solarSystem.mercury.velocity = glm::vec3(0.0f, 0.0f, -3.0f);
+	solarSystem.mars.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	// render loop
 	// -----------
@@ -151,14 +155,14 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 
 	// Process Gravity
 	// ---------------
-	glm::vec3 mercuryPos = glm::vec3(-5.0f, -3.0f, -10.0f);
+	gravity();
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), mercuryPos);
 	planetShader.setMat4("model", model);
 	setup_VBO(solarSystem.mercury);
 	glBindVertexArray(vaoId1);
 	glDrawElements(GL_TRIANGLES, solarSystem.mercury.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 
-	glm::vec3 marsPos = glm::vec3(5.0f, -3.0f, -10.0f);
+	
 	model = glm::translate(glm::mat4(1.0f), marsPos);
 	planetShader.setMat4("model", model);
 	glDrawElements(GL_TRIANGLES, solarSystem.mars.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
@@ -167,8 +171,26 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 // Process gravity calculations
 void gravity()
 {
+
+	double netForce = (6.6743e-11 * solarSystem.mercury.mass * solarSystem.mars.mass) / glm::distance(mercuryPos, marsPos);
+	double scalar_accel_mercury = netForce / solarSystem.mercury.mass;
+
+	glm::vec3 mercuryDirection = marsPos - mercuryPos;
+	glm::vec3 marsDirection = mercuryPos - marsPos;
+
+	glm::vec3 acceleration_mercury = mercuryDirection * static_cast<float>(scalar_accel_mercury);
+
+	double scalar_accel_mars = netForce / solarSystem.mars.mass;
+	glm::vec3 acceleration_mars = marsDirection * static_cast<float>(scalar_accel_mars);
+
+	solarSystem.mercury.velocity += acceleration_mercury * deltaTime;
+	mercuryPos += solarSystem.mercury.velocity * deltaTime;
+	solarSystem.mars.velocity += acceleration_mars * deltaTime;
+	marsPos += solarSystem.mars.velocity * deltaTime;
+	
 	
 }
+
 
 void draw_sphere(Sphere& sphere)
 {

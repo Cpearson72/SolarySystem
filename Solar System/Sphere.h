@@ -16,6 +16,9 @@
 #define GEOMETRY_SPHERE_H
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
 
@@ -73,6 +76,7 @@ public:
 
     // for gravity
     double mass;
+    glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
     float position[3] = { 0.0, 0.0, 0.0 };
 
 protected:
