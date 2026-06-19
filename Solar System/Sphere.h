@@ -15,7 +15,9 @@
 #ifndef GEOMETRY_SPHERE_H
 #define GEOMETRY_SPHERE_H
 
+#include <GLFW/glfw3.h>
 #include <vector>
+
 
 class Sphere
 {

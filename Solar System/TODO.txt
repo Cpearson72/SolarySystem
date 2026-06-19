@@ -1,0 +1,11 @@
+June 18th, 2026:
+
+DONE:
+# "1. Render Sphere"
+
+TODO:
+
+# "2. Basic Gravity Simulation. Includes a stable orbit"
+# "3. Set Solary System bodies scales(radius, mass, distance form sun, distance from planet)"
+# "4. Lighting System. Includes a glow around the sun or a sun like effect"
+# "5. Texture Solary System bodies"

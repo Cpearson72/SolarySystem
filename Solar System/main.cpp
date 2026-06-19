@@ -9,6 +9,8 @@
 #include "shader.h"
 #include "camera.h"
 #include "Sphere.h"
+#include "common.h"
+#include "solar_system.h"
 
 // std
 #include <iostream>
@@ -17,29 +19,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
-void initVBO();
-
-// settings
-const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 850;
-
-// camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
-
-// timing
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-// lighting
-float light_x = 2.0f;
-float light_z = 0.0f;
-int lightOrbitSteps = 0; // MAX 256
-glm::vec3 lightPos(light_x, 1.0f, light_z);
-unsigned int theta = 0;
-float lightAngle = 0.0f;
+void setup_VBO(Sphere& body);
+void step_simulation(Shader& planetShader, Shader& sunShader);
+void gravity();
 
 // sphere
 int nrRows = 7;
@@ -51,10 +33,10 @@ GLuint iboId1, iboId2;      // IDs of VBO for index array
 GLint attribVertexPosition = 0;
 GLint attribVertexNormal = 1;
 GLint attribVertexTexCoord = 2;
-
-Sphere sphere1(1.0f, 36, 18, false, 2);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Sphere sphere1(3.0f, 72, 36, true, 2);
 Sphere sphere2(1.0f, 36, 18, true, 2);  // radius, sectors, stacks, smooth(default), Y-up
-
+Planets solarSystem;
 
 int main()
 {
@@ -107,7 +89,6 @@ int main()
 	Shader planetShader("planetShader.vs", "planetShader.fs");
 	Shader sunShader("sunShader.vs", "sunShader.fs");
 
-	initVBO();
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -126,32 +107,10 @@ int main()
 		// ------
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		planetShader.use();
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::mat4(1.0f);
-		planetShader.setMat4("projection", projection);
-		planetShader.setMat4("view", view);
-		planetShader.setMat4("model", model);
-
-		// Light uniforms
-		glm::vec4 lightPosEye = view * glm::vec4(lightPos, 1.0f);
-
-		planetShader.setVec4("lightPosition", lightPosEye);
-		planetShader.setVec4("lightAmbient",
-			glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-		planetShader.setVec4("lightDiffuse",
-			glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-		planetShader.setVec4("lightSpecular",
-			glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-		// Sphere Drawing
-		// ---------------
-		glBindVertexArray(vaoId1);
-		glDrawElements(GL_TRIANGLES, sphere1.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
-
-
+		// Process & Display Simulation
+		// ----------------------------
+		step_simulation(planetShader, sunShader);
 
 		// Swap buffers
 		// --------------
@@ -163,7 +122,41 @@ int main()
 	return 0;
 }
 
+// Process gravity and draw simulation
+// -----------------------------------
+void step_simulation(Shader& planetShader, Shader& sunShader)
+{
+	// Activate Shader
+	planetShader.use();
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 model = glm::mat4(1.0f);
+	planetShader.setMat4("projection", projection);
+	planetShader.setMat4("view", view);
+	planetShader.setMat4("model", model);
 
+	// Light uniforms
+	glm::vec3 lightPos = glm::vec3(2.0f, 1.0f, 0.0f);
+	glm::vec4 lightPosEye = view * glm::vec4(lightPos, 1.0f);
+	planetShader.setVec4("lightPosition", lightPosEye);
+	planetShader.setVec4("lightAmbient", glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	planetShader.setVec4("lightDiffuse",glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+	planetShader.setVec4("lightSpecular",glm::vec4(0.0f));
+
+	// Process Gravity
+	// 
+	setup_VBO(solarSystem.mercury);
+	// Sphere Drawing
+	// ---------------
+	glBindVertexArray(vaoId1);
+	glDrawElements(GL_TRIANGLES, sphere1.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
+}
+
+// Process gravity calculations
+void gravity()
+{
+	
+}
 
 
 // process all input
@@ -222,7 +215,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 //////////////////////////////////////////////////////////////////////////////
 // copy vertex data to VBO and VA state to VAO
 ///////////////////////////////////////////////////////////////////////////////
-void initVBO()
+void setup_VBO(Sphere& body)
 {
 	// sphere1
 	// create vertex array object to store all vertex array states only once
@@ -235,13 +228,13 @@ void initVBO()
 		glGenBuffers(1, &vboId1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vboId1);
-	glBufferData(GL_ARRAY_BUFFER, sphere1.getInterleavedVertexSize(), sphere1.getInterleavedVertices(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, body.getInterleavedVertexSize(), body.getInterleavedVertices(), GL_STATIC_DRAW);
 
 	if (!iboId1)
 		glGenBuffers(1, &iboId1);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId1);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sphere1.getIndexSize(), sphere1.getIndices(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, body.getIndexSize(), body.getIndices(), GL_STATIC_DRAW);
 
 	// enable vertex array attributes for bound VAO
 	glEnableVertexAttribArray(attribVertexPosition);
@@ -249,36 +242,11 @@ void initVBO()
 	
 
 	// store vertex array pointers to bound VAO
-	int stride = sphere1.getInterleavedStride();
+	int stride = body.getInterleavedStride();
 	glVertexAttribPointer(attribVertexPosition, 3, GL_FLOAT, false, stride, 0);
 	glVertexAttribPointer(attribVertexNormal, 3, GL_FLOAT, false, stride, (void*)(3 * sizeof(float)));
 	glVertexAttribPointer(attribVertexTexCoord, 2, GL_FLOAT, false, stride, (void*)(6 * sizeof(float)));
 
-	// sphere2
-	if (!vaoId2)
-		glGenVertexArrays(1, &vaoId2);
-	glBindVertexArray(vaoId2);
-
-	if (!vboId2)
-		glGenBuffers(1, &vboId2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vboId2);
-	glBufferData(GL_ARRAY_BUFFER, sphere2.getInterleavedVertexSize(), sphere2.getInterleavedVertices(), GL_STATIC_DRAW);
-
-	if (!iboId2)
-		glGenBuffers(1, &iboId2);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sphere2.getIndexSize(), sphere2.getIndices(), GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(attribVertexPosition);
-	glEnableVertexAttribArray(attribVertexNormal);
-	glEnableVertexAttribArray(attribVertexTexCoord);
-
-	stride = sphere2.getInterleavedStride();
-	glVertexAttribPointer(attribVertexPosition, 3, GL_FLOAT, false, stride, 0);
-	glVertexAttribPointer(attribVertexNormal, 3, GL_FLOAT, false, stride, (void*)(3 * sizeof(float)));
-	glVertexAttribPointer(attribVertexTexCoord, 2, GL_FLOAT, false, stride, (void*)(6 * sizeof(float)));
 
 	// unbind
 	glBindVertexArray(0);

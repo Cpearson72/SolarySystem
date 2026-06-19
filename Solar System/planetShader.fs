@@ -7,6 +7,7 @@ uniform vec4 lightSpecular;
 
 in vec3 esVertex;
 in vec3 esNormal;
+in mat4 cameraView;
 
 out vec4 fragColor;
 
@@ -20,7 +21,8 @@ void main()
     else
         light = normalize(lightPosition.xyz - esVertex);
 
-    vec3 view = normalize(-esVertex);
+    vec3 viewDirection = normalize(vec3(cameraView[0].z, cameraView[1].z, cameraView[2].z));
+    vec3 view = normalize(-viewDirection);
 
     vec3 reflectVec = reflect(-light, normal);
 
