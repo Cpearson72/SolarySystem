@@ -26,7 +26,7 @@ class Sphere
 {
 public:
     // ctor/dtor
-    Sphere(float radius = 1.0f, int sectorCount = 36, int stackCount = 18, bool smooth = true, int up = 3);
+    Sphere(double radius = 1.0f, int sectorCount = 36, int stackCount = 18, bool smooth = true, int up = 3);
     ~Sphere() {}
 
     // getters/setters
@@ -34,8 +34,8 @@ public:
     int getSectorCount() const { return sectorCount; }
     int getStackCount() const { return stackCount; }
     int getUpAxis() const { return upAxis; }
-    void set(float radius, int sectorCount, int stackCount, bool smooth = true, int up = 3);
-    void setRadius(float radius);
+    void set(double radius, int sectorCount, int stackCount, bool smooth = true, int up = 3);
+    void setRadius(double radius);
     void setSectorCount(int sectorCount);
     void setStackCount(int stackCount);
     void setSmooth(bool smooth);
@@ -77,7 +77,7 @@ public:
     // for gravity
     double mass;
     glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-    float position[3] = { 0.0, 0.0, 0.0 };
+    glm::vec3 position;
 
 protected:
 

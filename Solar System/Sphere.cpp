@@ -37,7 +37,7 @@ const int MIN_STACK_COUNT = 2;
 ///////////////////////////////////////////////////////////////////////////////
 // ctor
 ///////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere(float radius, int sectors, int stacks, bool smooth, int up) : interleavedStride(32)
+Sphere::Sphere(double radius, int sectors, int stacks, bool smooth, int up) : interleavedStride(32)
 {
     set(radius, sectors, stacks, smooth, up);
 }
@@ -47,7 +47,7 @@ Sphere::Sphere(float radius, int sectors, int stacks, bool smooth, int up) : int
 ///////////////////////////////////////////////////////////////////////////////
 // setters
 ///////////////////////////////////////////////////////////////////////////////
-void Sphere::set(float radius, int sectors, int stacks, bool smooth, int up)
+void Sphere::set(double radius, int sectors, int stacks, bool smooth, int up)
 {
     if (radius > 0)
         this->radius = radius;
@@ -68,7 +68,7 @@ void Sphere::set(float radius, int sectors, int stacks, bool smooth, int up)
         buildVerticesFlat();
 }
 
-void Sphere::setRadius(float radius)
+void Sphere::setRadius(double radius)
 {
     if (radius != this->radius)
         set(radius, sectorCount, stackCount, smooth, upAxis);

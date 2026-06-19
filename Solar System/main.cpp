@@ -15,6 +15,8 @@
 // std
 #include <iostream>
 
+// Function Prototypes
+// --------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -25,7 +27,8 @@ void gravity();
 void draw_sphere(Sphere& sphere);
 
 
-// sphere
+// sphere stuff. TODO: MOVE THIS
+// -----------------------------
 int nrRows = 7;
 int nrColumns = 7;
 float spacing = 2.5;
@@ -36,13 +39,10 @@ GLint attribVertexPosition = 0;
 GLint attribVertexNormal = 1;
 GLint attribVertexTexCoord = 2;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-Sphere sphere1(3.0f, 72, 36, true, 2);
-Sphere sphere2(1.0f, 36, 18, true, 2);  // radius, sectors, stacks, smooth(default), Y-up
-glm::vec3 mercuryPos = glm::vec3(-5.0f, -2.0f, -10.0f);
-glm::vec3 marsPos = glm::vec3(5.0f, -2.0f, -10.0f);
-
 Planets solarSystem;
 
+// Main
+// -----
 int main()
 {
 	// glfw: initialize and configure
@@ -96,11 +96,11 @@ int main()
 
 	// set planet masses
 	// -----------------
-	solarSystem.mercury.mass = 3.3011e8;
-	solarSystem.mars.mass = 6.4171e10;
-	solarSystem.mercury.velocity = glm::vec3(0.0f, 0.0f, -3.0f);
-	solarSystem.mars.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-
+	// Scales from https://cass.ucsd.edu/archive/personal/susan/origins/1.5_1.html
+	set_mass(solarSystem);
+	set_position(solarSystem);
+	setup_VBO(solarSystem.earth);
+	
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -138,9 +138,10 @@ int main()
 // -----------------------------------
 void step_simulation(Shader& planetShader, Shader& sunShader)
 {
+	std::vector<Sphere> planetVector = solarSystem.to_vector();
 	// Activate Shader
 	planetShader.use();
-	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10000.0f);
 	glm::mat4 view = camera.GetViewMatrix();
 	planetShader.setMat4("projection", projection);
 	planetShader.setMat4("view", view);
@@ -155,8 +156,8 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 
 	// Process Gravity
 	// ---------------
-	gravity();
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), mercuryPos);
+	//gravity();
+	/*glm::mat4 model = glm::translate(glm::mat4(1.0f), solarSystem.mercury.position);
 	planetShader.setMat4("model", model);
 	setup_VBO(solarSystem.mercury);
 	glBindVertexArray(vaoId1);
@@ -165,28 +166,37 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	
 	model = glm::translate(glm::mat4(1.0f), marsPos);
 	planetShader.setMat4("model", model);
-	glDrawElements(GL_TRIANGLES, solarSystem.mars.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
+	glDrawElements(GL_TRIANGLES, solarSystem.mars.getIndexCount(), GL_UNSIGNED_INT, (void*)0);*/
+	glBindVertexArray(vaoId1);
+	for (const auto& body: planetVector)
+	{
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), body.position);
+		float radius = body.getRadius();
+		model = glm::scale(model, glm::vec3(radius));
+		planetShader.setMat4("model", model);
+		glDrawElements(GL_TRIANGLES, body.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
+	}
 }
 
 // Process gravity calculations
 void gravity()
 {
 
-	double netForce = (6.6743e-11 * solarSystem.mercury.mass * solarSystem.mars.mass) / glm::distance(mercuryPos, marsPos);
-	double scalar_accel_mercury = netForce / solarSystem.mercury.mass;
+	//double netForce = (6.6743e-11 * solarSystem.mercury.mass * solarSystem.mars.mass) / glm::distance(mercuryPos, marsPos);
+	//double scalar_accel_mercury = netForce / solarSystem.mercury.mass;
 
-	glm::vec3 mercuryDirection = marsPos - mercuryPos;
-	glm::vec3 marsDirection = mercuryPos - marsPos;
+	//glm::vec3 mercuryDirection = marsPos - mercuryPos;
+	//glm::vec3 marsDirection = mercuryPos - marsPos;
 
-	glm::vec3 acceleration_mercury = mercuryDirection * static_cast<float>(scalar_accel_mercury);
+	//glm::vec3 acceleration_mercury = mercuryDirection * static_cast<float>(scalar_accel_mercury);
 
-	double scalar_accel_mars = netForce / solarSystem.mars.mass;
-	glm::vec3 acceleration_mars = marsDirection * static_cast<float>(scalar_accel_mars);
+	//double scalar_accel_mars = netForce / solarSystem.mars.mass;
+	//glm::vec3 acceleration_mars = marsDirection * static_cast<float>(scalar_accel_mars);
 
-	solarSystem.mercury.velocity += acceleration_mercury * deltaTime;
-	mercuryPos += solarSystem.mercury.velocity * deltaTime;
-	solarSystem.mars.velocity += acceleration_mars * deltaTime;
-	marsPos += solarSystem.mars.velocity * deltaTime;
+	//solarSystem.mercury.velocity += acceleration_mercury * deltaTime;
+	//mercuryPos += solarSystem.mercury.velocity * deltaTime;
+	//solarSystem.mars.velocity += acceleration_mars * deltaTime;
+	//marsPos += solarSystem.mars.velocity * deltaTime;
 	
 	
 }
