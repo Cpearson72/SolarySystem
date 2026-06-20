@@ -77,7 +77,7 @@ public:
     // for gravity
     double mass;
     glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 position;
+    glm::vec3 position = glm::vec3{ 0.0, 0.0, 0.0 };
 
 protected:
 

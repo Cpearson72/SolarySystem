@@ -59,7 +59,9 @@ int main()
 
 	// glfw window creation
 	// --------------------
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Solar System", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (window == NULL)
 	{
@@ -99,6 +101,7 @@ int main()
 	// Scales from https://cass.ucsd.edu/archive/personal/susan/origins/1.5_1.html
 	set_mass(solarSystem);
 	set_position(solarSystem);
+	calc_initial_orbital_velocities(solarSystem);
 	setup_VBO(solarSystem.earth);
 	
 	// render loop
@@ -138,7 +141,6 @@ int main()
 // -----------------------------------
 void step_simulation(Shader& planetShader, Shader& sunShader)
 {
-	std::vector<Sphere> planetVector = solarSystem.to_vector();
 	// Activate Shader
 	planetShader.use();
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10000.0f);
@@ -156,19 +158,10 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 
 	// Process Gravity
 	// ---------------
-	//gravity();
-	/*glm::mat4 model = glm::translate(glm::mat4(1.0f), solarSystem.mercury.position);
-	planetShader.setMat4("model", model);
-	setup_VBO(solarSystem.mercury);
+	gravity();
 	glBindVertexArray(vaoId1);
-	glDrawElements(GL_TRIANGLES, solarSystem.mercury.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
-
-	
-	model = glm::translate(glm::mat4(1.0f), marsPos);
-	planetShader.setMat4("model", model);
-	glDrawElements(GL_TRIANGLES, solarSystem.mars.getIndexCount(), GL_UNSIGNED_INT, (void*)0);*/
-	glBindVertexArray(vaoId1);
-	for (const auto& body: planetVector)
+	std::vector<Sphere> bodyVector = solarSystem.to_vector();
+	for (const auto& body: bodyVector)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), body.position);
 		float radius = body.getRadius();
@@ -176,37 +169,47 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 		planetShader.setMat4("model", model);
 		glDrawElements(GL_TRIANGLES, body.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 	}
+	//solarSystem.from_planet_vector(bodyVector);
 }
 
 // Process gravity calculations
+const float G = 6.6743e-11f;
+const double TIME_SCALE = 31557600; // 1 day per second
 void gravity()
 {
 
-	//double netForce = (6.6743e-11 * solarSystem.mercury.mass * solarSystem.mars.mass) / glm::distance(mercuryPos, marsPos);
-	//double scalar_accel_mercury = netForce / solarSystem.mercury.mass;
+	std::vector<Sphere> planetVector = solarSystem.planet_to_vector();
+	for ( auto& planet : planetVector)
+	{
+		double r_AU =
+			glm::distance(solarSystem.sun.position,
+				planet.position);
 
-	//glm::vec3 mercuryDirection = marsPos - mercuryPos;
-	//glm::vec3 marsDirection = mercuryPos - marsPos;
+		double r_meters = r_AU * AU;
 
-	//glm::vec3 acceleration_mercury = mercuryDirection * static_cast<float>(scalar_accel_mercury);
+		double netForce =
+			(G * solarSystem.sun.mass * planet.mass) /
+			(r_meters * r_meters);
 
-	//double scalar_accel_mars = netForce / solarSystem.mars.mass;
-	//glm::vec3 acceleration_mars = marsDirection * static_cast<float>(scalar_accel_mars);
+		double planet_scalar = netForce / planet.mass;
+		glm::vec3 gravityDir =
+			glm::normalize(
+				solarSystem.sun.position -
+				planet.position);
+		double acceleration_AU =
+			planet_scalar / AU;
+		glm::vec3 acceleration_planet =
+			gravityDir *
+			static_cast<float>(acceleration_AU);
 
-	//solarSystem.mercury.velocity += acceleration_mercury * deltaTime;
-	//mercuryPos += solarSystem.mercury.velocity * deltaTime;
-	//solarSystem.mars.velocity += acceleration_mars * deltaTime;
-	//marsPos += solarSystem.mars.velocity * deltaTime;
-	
+		float dt = deltaTime * TIME_SCALE;
+		planet.velocity += acceleration_planet * dt;
+		planet.position += planet.velocity * dt;
+	}
+
+	solarSystem.from_planet_vector(planetVector);
 	
 }
-
-
-void draw_sphere(Sphere& sphere)
-{
-
-}
-
 
 // process all input
 // ----------------------

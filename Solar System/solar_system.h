@@ -23,6 +23,24 @@ struct Planets
 	std::vector<Sphere> to_vector() const {
 		return { sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto };
 	}
+	std::vector<Sphere> planet_to_vector() const {
+		return { mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto };
+	}
+
+	void from_planet_vector(const std::vector<Sphere>& planets)
+	{
+		mercury = planets[0];
+		venus = planets[1];
+		earth = planets[2];
+		mars = planets[3];
+		jupiter = planets[4];
+		saturn = planets[5];
+		uranus = planets[6];
+		neptune = planets[7];
+		pluto = planets[8];
+	}
+
+
 };
 
 struct Moons
@@ -30,21 +48,22 @@ struct Moons
 
 };
 
+
 void set_mass(Planets& solarSystem)
 {
-	solarSystem.sun.mass = 1989100.0;
-	solarSystem.mercury.mass = 0.33;
-	solarSystem.venus.mass = 4.87;
-	solarSystem.earth.mass = 5.97;
-	solarSystem.mars.mass = 0.64;
-	solarSystem.jupiter.mass = 1898.60;
-	solarSystem.saturn.mass = 568.46;
-	solarSystem.uranus.mass = 86.62;
-	solarSystem.neptune.mass = 102.43;
-	solarSystem.pluto.mass = 0.01;
+	solarSystem.sun.mass = 1.9891e30; // 1989100.0 * 1e24
+	solarSystem.mercury.mass = 0.33e24;
+	solarSystem.venus.mass = 4.87e24;
+	solarSystem.earth.mass = 5.97e24;
+	solarSystem.mars.mass = 0.64e24;
+	solarSystem.jupiter.mass = 1898.60e24;
+	solarSystem.saturn.mass = 568.46e24;
+	solarSystem.uranus.mass = 86.62e24;
+	solarSystem.neptune.mass = 102.43e24;
+	solarSystem.pluto.mass = 0.01e24;
 }
 
-int distance_scale = 20;
+int distance_scale = 5;
 
 void set_position(Planets& solarSystem)
 {
@@ -58,4 +77,37 @@ void set_position(Planets& solarSystem)
 	solarSystem.uranus.position = glm::vec3(19.20f * distance_scale, -2.0f, -10.0f);
 	solarSystem.neptune.position = glm::vec3(30.06f * distance_scale, -2.0f, -10.0f);
 	solarSystem.pluto.position = glm::vec3(39.48f * distance_scale, -2.0f, -10.0f);
+}
+
+constexpr double AU = 1.496e11;
+
+void calc_initial_orbital_velocities(Planets& solarSystem)
+{
+	std::vector<Sphere> planetVector = solarSystem.planet_to_vector();
+	for (auto& planet : planetVector)
+	{
+		double r_AU = glm::distance(
+			solarSystem.sun.position,
+			planet.position);
+
+		double r_meter = r_AU * AU;
+
+		glm::vec3 gravityDir =
+			glm::normalize(
+				solarSystem.sun.position -
+				planet.position);
+
+		glm::vec3 up(0.0f, 1.0f, 0.0f);
+		glm::vec3 velocityDir =
+			glm::normalize(glm::cross(gravityDir, up));
+
+		float orbitalSpeed =
+			std::sqrt(
+				(6.6743e-11f * solarSystem.sun.mass) / r_meter);
+		float orbitalSpeed_world = orbitalSpeed / AU;
+		planet.velocity +=
+			velocityDir * orbitalSpeed_world;
+	}
+
+	solarSystem.from_planet_vector(planetVector);
 }
