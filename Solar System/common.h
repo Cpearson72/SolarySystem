@@ -1,7 +1,7 @@
 #pragma once
 // settings
-const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 850;
+unsigned int SCR_WIDTH = 1200;
+unsigned int SCR_HEIGHT = 850;
 
 // camera
 float lastX = SCR_WIDTH / 2.0f;

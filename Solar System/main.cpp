@@ -61,7 +61,12 @@ int main()
 	// --------------------
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	//GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Solar System", monitor, NULL);
+	//SCR_WIDTH = mode->width;
+	//SCR_HEIGHT = mode->height;
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Solar System", NULL, NULL);
+	lastX = SCR_WIDTH / 2.0f;
+	lastY = SCR_HEIGHT / 2.0f;
 	glfwMakeContextCurrent(window);
 	if (window == NULL)
 	{
@@ -149,7 +154,7 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	planetShader.setMat4("view", view);
 
 	// Light uniforms
-	glm::vec3 lightPos = glm::vec3(2.0f, 1.0f, 0.0f);
+	glm::vec3 lightPos = solarSystem.sun.position;
 	glm::vec4 lightPosEye = view * glm::vec4(lightPos, 1.0f);
 	planetShader.setVec4("lightPosition", lightPosEye);
 	planetShader.setVec4("lightAmbient", glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
@@ -160,7 +165,10 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	// ---------------
 	gravity();
 	glBindVertexArray(vaoId1);
-	std::vector<Sphere> bodyVector = solarSystem.to_vector();
+	
+	// Planets
+	// -------
+	std::vector<Sphere> bodyVector = solarSystem.planet_to_vector();
 	for (const auto& body: bodyVector)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), body.position);
@@ -169,6 +177,18 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 		planetShader.setMat4("model", model);
 		glDrawElements(GL_TRIANGLES, body.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 	}
+
+	// Sun
+	// -------
+	sunShader.use();
+	sunShader.setMat4("projection", projection);
+	sunShader.setMat4("view", view);
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), solarSystem.sun.position);
+	float radius = solarSystem.sun.getRadius();
+	model = glm::scale(model, glm::vec3(radius));
+	sunShader.setMat4("model", model);
+	glDrawElements(GL_TRIANGLES, solarSystem.sun.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
+
 	//solarSystem.from_planet_vector(bodyVector);
 }
 
