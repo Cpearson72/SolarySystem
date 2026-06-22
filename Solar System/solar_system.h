@@ -81,33 +81,21 @@ void set_position(Planets& solarSystem)
 
 constexpr double AU = 1.496e11;
 
-void calc_initial_orbital_velocities(Planets& solarSystem)
-{
+void calc_initial_orbital_velocities(Planets& solarSystem) {
 	std::vector<Sphere> planetVector = solarSystem.planet_to_vector();
-	for (auto& planet : planetVector)
-	{
-		double r_AU = glm::distance(
-			solarSystem.sun.position,
-			planet.position);
+	for (auto& planet : planetVector) {
+		// AU scale to meters for gravity calculations
+		// -------------------------------------------
+		double radius_AU = glm::distance(solarSystem.sun.position, planet.position);
+		double r_meter = radius_AU * AU;
 
-		double r_meter = r_AU * AU;
-
-		glm::vec3 gravityDir =
-			glm::normalize(
-				solarSystem.sun.position -
-				planet.position);
-
+		glm::vec3 gravityDir = glm::normalize(solarSystem.sun.position - planet.position);
 		glm::vec3 up(0.0f, 1.0f, 0.0f);
-		glm::vec3 velocityDir =
-			glm::normalize(glm::cross(gravityDir, up));
+		glm::vec3 velocityDir = glm::normalize(glm::cross(gravityDir, up));
 
-		float orbitalSpeed =
-			std::sqrt(
-				(6.6743e-11f * solarSystem.sun.mass) / r_meter);
+		float orbitalSpeed = std::sqrt((6.6743e-11f * solarSystem.sun.mass) / r_meter);
 		float orbitalSpeed_world = orbitalSpeed / AU;
-		planet.velocity +=
-			velocityDir * orbitalSpeed_world;
+		planet.velocity = velocityDir * orbitalSpeed_world;
 	}
-
 	solarSystem.from_planet_vector(planetVector);
 }

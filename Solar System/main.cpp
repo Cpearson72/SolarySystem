@@ -24,7 +24,6 @@ void processInput(GLFWwindow* window);
 void setup_VBO(Sphere& body);
 void step_simulation(Shader& planetShader, Shader& sunShader);
 void gravity();
-void draw_sphere(Sphere& sphere);
 
 
 // sphere stuff. TODO: MOVE THIS
@@ -96,6 +95,10 @@ int main()
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_DITHER);
+	glEnable(GL_MULTISAMPLE);
+
 	// build and compile our shader zprogram
 	// -----------------------------
 	Shader planetShader("planetShader.vs", "planetShader.fs");
@@ -154,12 +157,10 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	planetShader.setMat4("view", view);
 
 	// Light uniforms
-	glm::vec3 lightPos = solarSystem.sun.position;
-	glm::vec4 lightPosEye = view * glm::vec4(lightPos, 1.0f);
-	planetShader.setVec4("lightPosition", lightPosEye);
+	glm::vec4 sunPos = view * glm::vec4(solarSystem.sun.position, 1.0f);
+	planetShader.setVec4("lightPosition", sunPos);
 	planetShader.setVec4("lightAmbient", glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-	planetShader.setVec4("lightDiffuse",glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-	planetShader.setVec4("lightSpecular",glm::vec4(0.0f));
+	planetShader.setVec4("lightDiffuse",glm::vec4(0.6f, 0.6f, 0.6f, 1.0f));
 
 	// Process Gravity
 	// ---------------
@@ -189,51 +190,39 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	sunShader.setMat4("model", model);
 	glDrawElements(GL_TRIANGLES, solarSystem.sun.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 
-	//solarSystem.from_planet_vector(bodyVector);
 }
 
 // Process gravity calculations
 const float G = 6.6743e-11f;
-const double TIME_SCALE = 31557600; // 1 day per second
-void gravity()
-{
-
+double TIME_SCALE = 31557600; // 1 day per second
+void gravity() {
 	std::vector<Sphere> planetVector = solarSystem.planet_to_vector();
-	for ( auto& planet : planetVector)
-	{
-		double r_AU =
-			glm::distance(solarSystem.sun.position,
-				planet.position);
+	for (auto& planet : planetVector) {
 
-		double r_meters = r_AU * AU;
-
-		double netForce =
-			(G * solarSystem.sun.mass * planet.mass) /
-			(r_meters * r_meters);
-
+		// Convert AU scale to meters for Gravity Calculations
+		// ---------------------------------------------------
+		double radius_AU = glm::distance(solarSystem.sun.position, planet.position); 
+		double radius_meters = radius_AU * AU;
+		// Planet Acceleration
+		// --------------------
+		double netForce = (G * solarSystem.sun.mass * planet.mass) / (radius_meters * radius_meters); 
 		double planet_scalar = netForce / planet.mass;
-		glm::vec3 gravityDir =
-			glm::normalize(
-				solarSystem.sun.position -
-				planet.position);
-		double acceleration_AU =
-			planet_scalar / AU;
-		glm::vec3 acceleration_planet =
-			gravityDir *
-			static_cast<float>(acceleration_AU);
+		double acceleration_AU = planet_scalar / AU;
+		// glm units
+		// ----------
+		glm::vec3 gravityDir = glm::normalize(solarSystem.sun.position - planet.position); 
+		glm::vec3 acceleration_planet = gravityDir * static_cast<float>(acceleration_AU); 
 
+		
 		float dt = deltaTime * TIME_SCALE;
-		planet.velocity += acceleration_planet * dt;
-		planet.position += planet.velocity * dt;
+		planet.velocity += acceleration_planet * dt; planet.position += planet.velocity * dt;
 	}
-
 	solarSystem.from_planet_vector(planetVector);
-	
 }
 
 // process all input
 // ----------------------
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -246,6 +235,42 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
+
+	// gravity speed
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		camera.MovementSpeed += 0.02;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		TIME_SCALE += 30000;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		if (camera.MovementSpeed > 0)
+			camera.MovementSpeed -= 0.02;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		if ((TIME_SCALE - 30000) < 0)
+		{
+			TIME_SCALE = 0;
+		}
+		else 
+		{
+			TIME_SCALE -= 30000;
+		}
+	}
+
+	// reset planets
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+	{
+		calc_initial_orbital_velocities(solarSystem);
+		set_position(solarSystem);
+
+	}
+
 }
 // glfw: whenever the window size changed this is called
 // ----------------------------------------------------

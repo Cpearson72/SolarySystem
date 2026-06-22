@@ -5,7 +5,6 @@ layout (location = 1) in vec3 aNormal;
 
 out vec3 esVertex;
 out vec3 esNormal;
-out mat4 cameraView;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -21,5 +20,4 @@ void main()
     esNormal = normalize(normalMatrix * aNormal);
 
     gl_Position = projection * eyePos;
-    cameraView = view;
 }
