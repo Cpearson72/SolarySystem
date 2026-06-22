@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "stb_image.h"
 
 // Helper Classes
 #include "shader.h"
@@ -14,6 +15,9 @@
 
 // std
 #include <iostream>
+#include <string>
+#include<filesystem>
+namespace fs = std::filesystem;
 
 // Function Prototypes
 // --------------------
@@ -24,7 +28,9 @@ void processInput(GLFWwindow* window);
 void setup_VBO(Sphere& body);
 void step_simulation(Shader& planetShader, Shader& sunShader);
 void gravity();
-
+void draw_skybox(Shader& skyBoxShader);
+void skybox_VBO();
+void load_skybox_textures();
 
 // sphere stuff. TODO: MOVE THIS
 // -----------------------------
@@ -40,6 +46,14 @@ GLint attribVertexTexCoord = 2;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 Planets solarSystem;
 
+// skybox stuff. TODO: MOVE THIS
+// ----------------------------
+GLuint vaoSkyBox;
+GLuint vboSkyBox;
+GLuint eboSkyBox;
+
+
+
 // Main
 // -----
 int main()
@@ -51,6 +65,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -87,6 +102,7 @@ int main()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+	
 
 	// configure global opengl state
 	// -----------------------------
@@ -103,6 +119,7 @@ int main()
 	// -----------------------------
 	Shader planetShader("planetShader.vs", "planetShader.fs");
 	Shader sunShader("sunShader.vs", "sunShader.fs");
+	Shader skyBoxShader("skyBox.vs", "skyBox.fs");
 
 	// set planet masses
 	// -----------------
@@ -110,7 +127,10 @@ int main()
 	set_mass(solarSystem);
 	set_position(solarSystem);
 	calc_initial_orbital_velocities(solarSystem);
-	setup_VBO(solarSystem.earth);
+
+	// Textures
+	// --------
+	load_skybox_textures();
 	
 	// render loop
 	// -----------
@@ -133,7 +153,10 @@ int main()
 
 		// Process & Display Simulation
 		// ----------------------------
+		setup_VBO(solarSystem.earth);
 		step_simulation(planetShader, sunShader);
+		skybox_VBO();
+		draw_skybox(skyBoxShader);
 
 		// Swap buffers
 		// --------------
@@ -143,6 +166,27 @@ int main()
 
 	glfwTerminate();
 	return 0;
+}
+
+// Render skybox and apply textures
+// --------------------------------
+void draw_skybox(Shader& skyBoxShader)
+{
+	glDepthFunc(GL_LEQUAL);
+	skyBoxShader.use();
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10000.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	skyBoxShader.setMat4("projection", projection);
+	skyBoxShader.setMat4("view", view);
+
+	glBindVertexArray(vaoSkyBox);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	
+	glDepthFunc(GL_LESS);
+
 }
 
 // Process gravity and draw simulation
@@ -349,4 +393,95 @@ void setup_VBO(Sphere& body)
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void skybox_VBO()
+{	
+	// VAO
+	// ---
+	if (!vaoSkyBox)
+		glGenVertexArrays(1, &vaoSkyBox);
+	glBindVertexArray(vaoSkyBox);
+
+	// VBO
+	// ---
+	if (!vboSkyBox)
+		glGenBuffers(1, &vboSkyBox);
+	glBindBuffer(GL_ARRAY_BUFFER, vboSkyBox);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+	// EBO
+	// ---
+	if (!eboSkyBox)
+		glGenBuffers(1, &eboSkyBox);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboSkyBox);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(skyboxIndices), &skyboxIndices, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(attribVertexPosition);
+	glVertexAttribPointer(attribVertexPosition, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
+
+	// Unbined
+	// -------
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+}
+
+void load_skybox_textures()
+{
+	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
+	std::string facesCubemap[6] =
+	{
+		parentDir + "/Resources/sky_box/right.png",
+		parentDir + "/Resources/sky_box/left.png",
+		parentDir + "/Resources/sky_box/top.png",
+		parentDir + "/Resources/sky_box/bottom.png",
+		parentDir + "/Resources/sky_box/front.png",
+		parentDir + "/Resources/sky_box/back.png",
+	};
+	glGenTextures(1, &cubemapTexture);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	stbi_set_flip_vertically_on_load(false);
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(facesCubemap[i].c_str(), &width, &height, &nrChannels, 0);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		if (data)
+		{
+			std::cout
+				<< width << " "
+				<< height << " "
+				<< nrChannels
+				<< std::endl;
+			GLenum format = GL_RGBA;
+
+			glTexImage2D(
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				0,
+				GL_RGBA,
+				width,
+				height,
+				0,
+				format,
+				GL_UNSIGNED_BYTE,
+				data
+			);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Failed to load teture: " << facesCubemap[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
 }

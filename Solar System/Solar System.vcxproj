@@ -148,6 +148,7 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -155,15 +156,40 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="solar_system.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="planetShader.fs" />
     <None Include="planetShader.vs" />
+    <None Include="skyBox.fs" />
+    <None Include="skyBox.vs" />
     <None Include="sunShader.fs" />
     <None Include="sunShader.vs" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resources\2k_neptune.jpg" />
+    <Image Include="..\resources\2k_uranus.jpg" />
+    <Image Include="..\resources\4k_venus_atmosphere.jpg" />
+    <Image Include="..\resources\8k_jupiter.jpg" />
+    <Image Include="..\resources\8k_mars.jpg" />
+    <Image Include="..\resources\8k_mercury.jpg" />
+    <Image Include="..\resources\8k_saturn.jpg" />
+    <Image Include="..\resources\8k_saturn_ring_alpha.png" />
+    <Image Include="..\resources\8k_sun.jpg" />
+    <Image Include="..\resources\8k_venus_surface.jpg" />
+    <Image Include="..\resources\earth\8k_earth_daymap.jpg" />
+    <Image Include="..\resources\earth\8k_earth_nightmap (1).jpg" />
+    <Image Include="..\resources\earth\8k_earth_normal_map.tif" />
+    <Image Include="..\resources\earth\8k_earth_specular_map.tif" />
+    <Image Include="..\resources\sky_box\left.png" />
+    <Image Include="..\resources\sky_box\bottom.png" />
+    <Image Include="..\resources\sky_box\back.png" />
+    <Image Include="..\resources\sky_box\right.png" />
+    <Image Include="..\resources\sky_box\top.png" />
+    <Image Include="..\resources\sky_box\front.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

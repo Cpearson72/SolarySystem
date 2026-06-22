@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\Earth">
+      <UniqueIdentifier>{d33e00c9-2263-4522-a305-95e8f1854aa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Planets">
+      <UniqueIdentifier>{a9074b27-9a38-4530-ad12-31fe48d62d49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Sun">
+      <UniqueIdentifier>{44a8ef18-5035-47c2-9664-7d0ecd3f8725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Skybox">
+      <UniqueIdentifier>{87e4c6b6-c096-44ee-b3d5-08ff497c3f1d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -22,6 +34,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Sphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,14 +56,81 @@
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="planetShader.vs" />
     <None Include="planetShader.fs" />
     <None Include="sunShader.vs" />
     <None Include="sunShader.fs" />
+    <None Include="skyBox.vs" />
+    <None Include="skyBox.fs" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resources\earth\8k_earth_daymap.jpg">
+      <Filter>Resource Files\Earth</Filter>
+    </Image>
+    <Image Include="..\resources\earth\8k_earth_nightmap (1).jpg">
+      <Filter>Resource Files\Earth</Filter>
+    </Image>
+    <Image Include="..\resources\earth\8k_earth_normal_map.tif">
+      <Filter>Resource Files\Earth</Filter>
+    </Image>
+    <Image Include="..\resources\earth\8k_earth_specular_map.tif">
+      <Filter>Resource Files\Earth</Filter>
+    </Image>
+    <Image Include="..\resources\2k_neptune.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\2k_uranus.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\4k_venus_atmosphere.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_jupiter.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_mars.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_mercury.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_saturn.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_saturn_ring_alpha.png">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_venus_surface.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
+    <Image Include="..\resources\8k_sun.jpg">
+      <Filter>Resource Files\Sun</Filter>
+    </Image>
+    <Image Include="..\resources\sky_box\left.png">
+      <Filter>Resource Files\Skybox</Filter>
+    </Image>
+    <Image Include="..\resources\sky_box\bottom.png">
+      <Filter>Resource Files\Skybox</Filter>
+    </Image>
+    <Image Include="..\resources\sky_box\back.png">
+      <Filter>Resource Files\Skybox</Filter>
+    </Image>
+    <Image Include="..\resources\sky_box\right.png">
+      <Filter>Resource Files\Skybox</Filter>
+    </Image>
+    <Image Include="..\resources\sky_box\top.png">
+      <Filter>Resource Files\Skybox</Filter>
+    </Image>
+    <Image Include="..\resources\sky_box\front.png">
+      <Filter>Resource Files\Skybox</Filter>
+    </Image>
   </ItemGroup>
 </Project>
