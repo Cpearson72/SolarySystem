@@ -6,11 +6,20 @@ in vec3 Normal;
 
 // Output color
 out vec4 FragColor;
+uniform sampler2D sphereMap;
 
 // Material and light uniforms
 uniform vec4 lightColor;
 
 void main()
 {
-    FragColor = vec4(1.0, 242.0 / 255.0, 237.0 / 255.0, 1.0);
+
+    vec3 n = normalize(FragPos);
+    float u = atan(n.z, -n.x) / (2.0 * 3.14159265) + 0.5;
+    float v = asin(n.y) / 3.14159265 + 0.5;
+    vec2 TexCoord = vec2(u, v);
+    vec4 texColor = texture(sphereMap, TexCoord);
+
+    FragColor = vec4(texColor.rgb, texColor.a);
+
 }

@@ -494,6 +494,7 @@ void load_sphere_texture(Sphere& body, Shader& planetShader)
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -506,7 +507,7 @@ void load_texture_paths()
 	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
 	std::string bodyDir[10] =
 	{
-		parentDir + "/Resources/8k_sun.jpg",
+		parentDir + "/Resources/2k_sun.jpg",
 		parentDir + "/Resources/8k_mercury.jpg",
 		parentDir + "/Resources/8k_venus_surface.jpg",
 		parentDir + "/Resources/earth/8k_earth_daymap.jpg",
