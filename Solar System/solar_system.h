@@ -39,6 +39,20 @@ struct Planets
 		neptune = planets[7];
 		pluto = planets[8];
 	}
+	void from_vector(const std::vector<Sphere>& planets)
+	{
+		sun = planets[0];
+		mercury = planets[1];
+		venus = planets[2];
+		earth = planets[3];
+		mars = planets[4];
+		jupiter = planets[5];
+		saturn = planets[6];
+		uranus = planets[7];
+		neptune = planets[8];
+		pluto = planets[9];
+	}
+
 
 
 };
@@ -99,57 +113,6 @@ void calc_initial_orbital_velocities(Planets& solarSystem) {
 	}
 	solarSystem.from_planet_vector(planetVector);
 }
-
-//float skyboxVertices[] = {
-//	// Positions          
-//	// Back Face
-//	-1.0f,  1.0f, -1.0f,
-//	-1.0f, -1.0f, -1.0f,
-//	 1.0f, -1.0f, -1.0f,
-//	 1.0f, -1.0f, -1.0f,
-//	 1.0f,  1.0f, -1.0f,
-//	-1.0f,  1.0f, -1.0f,
-//
-//	// Front Face
-//	-1.0f, -1.0f,  1.0f,
-//	-1.0f,  1.0f,  1.0f,
-//	 1.0f,  1.0f,  1.0f,
-//	 1.0f,  1.0f,  1.0f,
-//	 1.0f, -1.0f,  1.0f,
-//	-1.0f, -1.0f,  1.0f,
-//
-//	// Left Face
-//	-1.0f,  1.0f,  1.0f,
-//	-1.0f,  1.0f, -1.0f,
-//	-1.0f, -1.0f, -1.0f,
-//	-1.0f, -1.0f, -1.0f,
-//	-1.0f, -1.0f,  1.0f,
-//	-1.0f,  1.0f,  1.0f,
-//
-//	// Right Face
-//	 1.0f,  1.0f, -1.0f,
-//	 1.0f,  1.0f,  1.0f,
-//	 1.0f, -1.0f,  1.0f,
-//	 1.0f, -1.0f,  1.0f,
-//	 1.0f, -1.0f, -1.0f,
-//	 1.0f,  1.0f, -1.0f,
-//
-//	 // Bottom Face
-//	 -1.0f, -1.0f, -1.0f,
-//	  1.0f, -1.0f, -1.0f,
-//	  1.0f, -1.0f,  1.0f,
-//	  1.0f, -1.0f,  1.0f,
-//	 -1.0f, -1.0f,  1.0f,
-//	 -1.0f, -1.0f, -1.0f,
-//
-//	 // Top Face
-//	 -1.0f,  1.0f, -1.0f,
-//	 -1.0f,  1.0f,  1.0f,
-//	  1.0f,  1.0f,  1.0f,
-//	  1.0f,  1.0f,  1.0f,
-//	  1.0f,  1.0f, -1.0f,
-//	 -1.0f,  1.0f, -1.0f
-//};
 
 float skyboxVertices[] =
 {

@@ -132,5 +132,8 @@
     <Image Include="..\resources\sky_box\front.png">
       <Filter>Resource Files\Skybox</Filter>
     </Image>
+    <Image Include="..\resources\4k_pluto_fake.jpg">
+      <Filter>Resource Files\Planets</Filter>
+    </Image>
   </ItemGroup>
 </Project>

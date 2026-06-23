@@ -31,6 +31,9 @@ void gravity();
 void draw_skybox(Shader& skyBoxShader);
 void skybox_VBO();
 void load_skybox_textures();
+void load_sphere_texture(Sphere& body, Shader& planetShader);
+void load_texture_paths();
+
 
 // sphere stuff. TODO: MOVE THIS
 // -----------------------------
@@ -131,6 +134,7 @@ int main()
 	// Textures
 	// --------
 	load_skybox_textures();
+	load_texture_paths();
 	
 	// render loop
 	// -----------
@@ -214,12 +218,15 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	// Planets
 	// -------
 	std::vector<Sphere> bodyVector = solarSystem.planet_to_vector();
-	for (const auto& body: bodyVector)
+	for (auto& body: bodyVector)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), body.position);
 		float radius = body.getRadius();
 		model = glm::scale(model, glm::vec3(radius));
 		planetShader.setMat4("model", model);
+
+		// texture
+		load_sphere_texture(body, planetShader);
 		glDrawElements(GL_TRIANGLES, body.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 	}
 
@@ -232,6 +239,7 @@ void step_simulation(Shader& planetShader, Shader& sunShader)
 	float radius = solarSystem.sun.getRadius();
 	model = glm::scale(model, glm::vec3(radius));
 	sunShader.setMat4("model", model);
+	load_sphere_texture(solarSystem.sun, planetShader);
 	glDrawElements(GL_TRIANGLES, solarSystem.sun.getIndexCount(), GL_UNSIGNED_INT, (void*)0);
 
 }
@@ -458,13 +466,6 @@ void load_skybox_textures()
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		if (data)
 		{
-			std::cout
-				<< width << " "
-				<< height << " "
-				<< nrChannels
-				<< std::endl;
-			GLenum format = GL_RGBA;
-
 			glTexImage2D(
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
 				0,
@@ -472,7 +473,7 @@ void load_skybox_textures()
 				width,
 				height,
 				0,
-				format,
+				GL_RGBA,
 				GL_UNSIGNED_BYTE,
 				data
 			);
@@ -484,4 +485,76 @@ void load_skybox_textures()
 			stbi_image_free(data);
 		}
 	}
+}
+
+void load_sphere_texture(Sphere& body, Shader& planetShader)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, body.textureID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glUniform1i(glGetUniformLocation(planetShader.ID, "sphereMap"), 0);
+
+}
+
+void load_texture_paths()
+{
+	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
+	std::string bodyDir[10] =
+	{
+		parentDir + "/Resources/8k_sun.jpg",
+		parentDir + "/Resources/8k_mercury.jpg",
+		parentDir + "/Resources/8k_venus_surface.jpg",
+		parentDir + "/Resources/earth/8k_earth_daymap.jpg",
+		parentDir + "/Resources/8k_mars.jpg",
+		parentDir + "/Resources/8k_jupiter.jpg",
+		parentDir + "/Resources/8k_saturn.jpg",
+		parentDir + "/Resources/2k_uranus.jpg",
+		parentDir + "/Resources/2k_neptune.jpg",
+		parentDir + "/Resources/4k_pluto_fake.jpg"
+	};
+	solarSystem.sun.texturePath = bodyDir[0];
+	solarSystem.mercury.texturePath = bodyDir[1];
+	solarSystem.venus.texturePath = bodyDir[2];
+	solarSystem.earth.texturePath = bodyDir[3];
+	solarSystem.mars.texturePath = bodyDir[4];
+	solarSystem.jupiter.texturePath = bodyDir[5];
+	solarSystem.saturn.texturePath = bodyDir[6];
+	solarSystem.uranus.texturePath = bodyDir[7];
+	solarSystem.neptune.texturePath = bodyDir[8];
+	solarSystem.pluto.texturePath = bodyDir[9];
+	stbi_set_flip_vertically_on_load(true);
+	std::vector<Sphere> bodies = solarSystem.to_vector();
+	for (auto& body : bodies) {
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(body.texturePath.c_str(), &width, &height, &nrChannels, 0);
+
+		if (data)
+		{
+			glGenTextures(1, &body.textureID);
+			glBindTexture(GL_TEXTURE_2D, body.textureID);
+			GLenum format = GL_RGB;
+			if (nrChannels == 1) format = GL_RED;
+			else if (nrChannels == 3) format = GL_RGB;
+			else if (nrChannels == 4) format = GL_RGBA;
+
+			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Failed to load texture at path: " << body.texturePath.c_str() << std::endl;
+			std::cout << "Reason: " << stbi_failure_reason() << std::endl;
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	solarSystem.from_vector(bodies);
+
+
 }

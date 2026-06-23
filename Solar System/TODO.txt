@@ -4,12 +4,13 @@ DONE:
 # "1. Render Sphere"
 # "2. Basic Gravity Simulation. Includes a stable orbit"
 # "3. Set Solary System bodies scales(radius, mass, distance form sun, distance from planet)"
+# "8. Star backdrop"
+# "4. Lighting System to reflect sun"
+
 
 TODO:
 
-# "4. Lighting System. Includes a glow around the sun or a sun like effect"
 # "5. Texture Solary System bodies"
 # "6. Simulate rotation and axis tilts"
 # "7. Add all moons"
-# "8. Star backdrop"
 # "9. Extra bodies/brain storm fun new things"

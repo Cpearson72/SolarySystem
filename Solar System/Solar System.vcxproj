@@ -172,6 +172,7 @@
   <ItemGroup>
     <Image Include="..\resources\2k_neptune.jpg" />
     <Image Include="..\resources\2k_uranus.jpg" />
+    <Image Include="..\resources\4k_pluto_fake.jpg" />
     <Image Include="..\resources\4k_venus_atmosphere.jpg" />
     <Image Include="..\resources\8k_jupiter.jpg" />
     <Image Include="..\resources\8k_mars.jpg" />
